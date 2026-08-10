@@ -1,0 +1,19 @@
+{
+  "name": "wa-gateway-service",
+  "version": "1.0.0",
+  "description": "WhatsApp Gateway Service & Auto-Reply Bot for Suntik Sosmed ID",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "@whiskeysockets/baileys": "^6.7.0",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "pino": "^8.16.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
