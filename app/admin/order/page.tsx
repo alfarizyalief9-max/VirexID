@@ -13,10 +13,15 @@ export const metadata = {
  * Halaman Manajemen Order Admin (Server Component)
  */
 export default async function AdminOrderPage() {
-  const orders = await prisma.order.findMany({
-    orderBy: { dibuatPada: 'desc' },
-    include: { paket: true },
-  });
+  let orders: any[] = [];
+  try {
+    orders = await prisma.order.findMany({
+      orderBy: { dibuatPada: 'desc' },
+      include: { paket: true },
+    });
+  } catch (err: any) {
+    console.error('Peringatan: Gagal query database pada Admin Order Page:', err.message);
+  }
 
   return (
     <AdminLayout>

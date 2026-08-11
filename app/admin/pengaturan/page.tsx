@@ -13,7 +13,12 @@ export const metadata = {
  * Halaman Pengaturan Toko Admin (Server Component)
  */
 export default async function AdminPengaturanPage() {
-  const pengaturanList = await prisma.pengaturan.findMany();
+  let pengaturanList: any[] = [];
+  try {
+    pengaturanList = await prisma.pengaturan.findMany();
+  } catch (err: any) {
+    console.error('Peringatan: Gagal query database pada Admin Pengaturan Page:', err.message);
+  }
 
   return (
     <AdminLayout>

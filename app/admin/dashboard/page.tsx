@@ -23,39 +23,49 @@ export default async function AdminDashboardPage() {
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  // 1. Stat Order Hari Ini
-  const totalOrderHariIni = await prisma.order.count({
-    where: {
-      dibuatPada: { gte: startOfDay },
-    },
-  });
+  let totalOrderHariIni = 0;
+  let omzetHariIni = 0;
+  let orderPendingCount = 0;
+  let totalPelangganCount = 0;
+  let latestOrders: OrderWithPaket[] = [];
 
-  // 2. Stat Omzet Hari Ini (Order status SUDAH_BAYAR, DIPROSES, SELESAI)
-  const omzetGroup = await prisma.order.aggregate({
-    where: {
-      dibuatPada: { gte: startOfDay },
-      status_order: { in: ['SUDAH_BAYAR', 'DIPROSES', 'SELESAI'] },
-    },
-    _sum: { total_harga: true },
-  });
-  const omzetHariIni = omzetGroup._sum.total_harga || 0;
+  try {
+    // 1. Stat Order Hari Ini
+    totalOrderHariIni = await prisma.order.count({
+      where: {
+        dibuatPada: { gte: startOfDay },
+      },
+    });
 
-  // 3. Stat Order Pending
-  const orderPendingCount = await prisma.order.count({
-    where: {
-      status_order: { in: ['BARU', 'MENUNGGU_BAYAR'] },
-    },
-  });
+    // 2. Stat Omzet Hari Ini (Order status SUDAH_BAYAR, DIPROSES, SELESAI)
+    const omzetGroup = await prisma.order.aggregate({
+      where: {
+        dibuatPada: { gte: startOfDay },
+        status_order: { in: ['SUDAH_BAYAR', 'DIPROSES', 'SELESAI'] },
+      },
+      _sum: { total_harga: true },
+    });
+    omzetHariIni = omzetGroup._sum.total_harga || 0;
 
-  // 4. Jumlah Total Pelanggan
-  const totalPelangganCount = await prisma.pelanggan.count();
+    // 3. Stat Order Pending
+    orderPendingCount = await prisma.order.count({
+      where: {
+        status_order: { in: ['BARU', 'MENUNGGU_BAYAR'] },
+      },
+    });
 
-  // 5. Ambil 5 Order Terbaru
-  const latestOrders = await prisma.order.findMany({
-    take: 5,
-    orderBy: { dibuatPada: 'desc' },
-    include: { paket: true },
-  });
+    // 4. Jumlah Total Pelanggan
+    totalPelangganCount = await prisma.pelanggan.count();
+
+    // 5. Ambil 5 Order Terbaru
+    latestOrders = await prisma.order.findMany({
+      take: 5,
+      orderBy: { dibuatPada: 'desc' },
+      include: { paket: true },
+    });
+  } catch (err: any) {
+    console.error('Peringatan: Gagal query database pada Dashboard Admin:', err.message);
+  }
 
   return (
     <AdminLayout>

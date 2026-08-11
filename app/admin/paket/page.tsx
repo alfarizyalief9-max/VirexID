@@ -13,9 +13,14 @@ export const metadata = {
  * Halaman Manajemen Paket Etalase Admin (Server Component)
  */
 export default async function AdminPaketPage() {
-  const paketList = await prisma.paket.findMany({
-    orderBy: [{ urutan: 'asc' }, { kode_paket: 'asc' }],
-  });
+  let paketList: any[] = [];
+  try {
+    paketList = await prisma.paket.findMany({
+      orderBy: [{ urutan: 'asc' }, { kode_paket: 'asc' }],
+    });
+  } catch (err: any) {
+    console.error('Peringatan: Gagal query database pada Admin Paket Page:', err.message);
+  }
 
   return (
     <AdminLayout>
