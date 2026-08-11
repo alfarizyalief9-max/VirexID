@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import AdminLayout from '@/components/AdminLayout';
 import AdminPaketTable from '@/components/AdminPaketTable';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Kelola Paket - Admin VirexID',
 };

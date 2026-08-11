@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import AdminLayout from '@/components/AdminLayout';
 import AdminOrderTable from '@/components/AdminOrderTable';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Kelola Order - Admin VirexID',
 };

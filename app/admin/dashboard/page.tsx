@@ -10,6 +10,8 @@ type OrderWithPaket = Prisma.OrderGetPayload<{
   include: { paket: true };
 }>;
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Dashboard Admin - VirexID',
 };

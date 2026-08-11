@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import AdminLayout from '@/components/AdminLayout';
 import AdminPengaturanForm from '@/components/AdminPengaturanForm';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Pengaturan Toko - Admin VirexID',
 };
