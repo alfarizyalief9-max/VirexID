@@ -256,6 +256,16 @@ export async function togglePaketStatusAction(paketId: number, status_aktif: boo
  */
 export async function deletePaketAction(paketId: number) {
   try {
+    const existingPaket = await prisma.paket.findUnique({
+      where: { id: paketId },
+    });
+
+    if (!existingPaket) {
+      revalidatePath('/admin/paket');
+      revalidatePath('/');
+      return { success: true, message: 'Paket sudah dihapus atau tidak ditemukan.' };
+    }
+
     // Cek apakah ada riwayat order di paket ini
     const orderCount = await prisma.order.count({
       where: { paket_id: paketId },
@@ -273,6 +283,11 @@ export async function deletePaketAction(paketId: number) {
     revalidatePath('/');
     return { success: true, message: 'Paket berhasil dihapus permanen.' };
   } catch (error: any) {
+    if (error.code === 'P2025') {
+      revalidatePath('/admin/paket');
+      revalidatePath('/');
+      return { success: true, message: 'Paket sudah tidak ditemukan di database.' };
+    }
     return { success: false, message: error.message };
   }
 }
