@@ -16,16 +16,19 @@ model Paket {
   id                  Int      @id @default(autoincrement()) // ID Unik Primary Key
   kode_paket          Int      @unique                       // Kode angka unik wajib (contoh: 101, 201)
   id_layanan_provider Int?                                   // ID Service resmi dari Dumpedia.id (contoh: 1542)
+  nama_provider       String?  @default("Dumpedia.id")       // Nama Provider SMM Panel
   platform            String                                 // Platform: Instagram / TikTok / YouTube / dll
-  nama_paket    String                                 // Nama Paket (contoh: Followers 1K)
-  harga         Int                                    // Harga dalam Rupiah (tanpa titik, contoh: 15000)
-  estimasi      String                                 // Estimasi waktu pengerjaan (contoh: 1-15 menit)
-  garansi       String                                 // Info garansi (contoh: 30 hari)
-  butuh_password Boolean @default(false)               // Penanda apakah butuh password akun
-  status_aktif  Boolean  @default(true)                // Penanda paket aktif/tampil di etalase
-  urutan        Int      @default(0)                   // Urutan penampilan di website
-  dibuatPada    DateTime @default(now())               // Waktu data dibuat
-  diupdatePada  DateTime @updatedAt                    // Waktu data diupdate otomatis
+  nama_paket          String                                 // Nama Paket (contoh: Followers 1K)
+  harga               Int                                    // Harga Jual dalam Rupiah (tanpa titik, contoh: 15000)
+  harga_modal         Int      @default(0)                   // Harga Modal dalam Rupiah
+  jumlah_default      Int      @default(1000)                // Jumlah default paket (contoh: 1000)
+  estimasi            String                                 // Estimasi waktu pengerjaan (contoh: 1-15 menit)
+  garansi             String                                 // Info garansi (contoh: 30 hari)
+  butuh_password      Boolean  @default(false)               // Penanda apakah butuh password akun
+  status_aktif        Boolean  @default(true)                // Penanda paket aktif/tampil di etalase
+  urutan              Int      @default(0)                   // Urutan penampilan di website
+  dibuatPada          DateTime @default(now())               // Waktu data dibuat
+  diupdatePada        DateTime @updatedAt                    // Waktu data diupdate otomatis
 
   // Relasi ke Tabel Order (1 Paket bisa memiliki banyak Order)
   orders Order[]

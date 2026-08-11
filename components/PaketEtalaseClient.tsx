@@ -53,8 +53,10 @@ export default function PaketEtalaseClient({ paketList, nomorWaBot }: PaketEtala
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [successInvoice, setSuccessInvoice] = useState<{ invoice: string; total: number; nama: string } | null>(null);
 
-  // Daftar Kategori Platform untuk Tab Filter
-  const platforms = ['Semua', 'Instagram', 'TikTok', 'YouTube'];
+  // Daftar Kategori Platform Dinamis dari Data Paket DB
+  const dynamicPlatforms = Array.from(new Set(paketList.map((p) => p.platform))).filter(Boolean);
+  const defaultPlatforms = ['Instagram', 'TikTok', 'YouTube'];
+  const allPlatformTabs = ['Semua', ...Array.from(new Set([...defaultPlatforms, ...dynamicPlatforms]))];
 
   // Filter paket berdasarkan tab aktif
   const filteredPaket = paketList.filter((item) => {
@@ -90,9 +92,9 @@ export default function PaketEtalaseClient({ paketList, nomorWaBot }: PaketEtala
         </div>
       )}
 
-      {/* Filter Buttons Platform */}
+      {/* Filter Buttons Platform Dinamis */}
       <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-        {platforms.map((platform) => {
+        {allPlatformTabs.map((platform) => {
           const isActive = selectedPlatform === platform;
           return (
             <button

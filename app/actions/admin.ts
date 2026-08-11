@@ -95,79 +95,130 @@ export async function deleteOrderAction(orderId: number) {
 }
 
 /**
- * SERVER ACTION: Tambah Paket Baru (Kode Paket Wajib Angka Unik)
+ * SERVER ACTION: Tambah Paket Baru (Kode Paket Wajib Angka Unik & Validasi Lengkap)
  */
 export async function createPaketAction(formData: FormData) {
   try {
     const kode_paket = parseInt(formData.get('kode_paket') as string, 10);
     const idLayananStr = formData.get('id_layanan_provider') as string;
     const id_layanan_provider = idLayananStr && idLayananStr.trim() !== '' ? parseInt(idLayananStr, 10) : null;
-    const platform = formData.get('platform') as string;
-    const nama_paket = formData.get('nama_paket') as string;
+    const nama_provider = (formData.get('nama_provider') as string) || 'Dumpedia.id';
+    const platform = (formData.get('platform') as string) || 'Instagram';
+    const nama_paket = (formData.get('nama_paket') as string) || '';
     const harga = parseInt(formData.get('harga') as string, 10);
-    const estimasi = formData.get('estimasi') as string;
-    const garansi = formData.get('garansi') as string;
+    const harga_modal = parseInt((formData.get('harga_modal') as string) || '0', 10);
+    const jumlah_default = parseInt((formData.get('jumlah_default') as string) || '1000', 10);
+    const estimasi = (formData.get('estimasi') as string) || '1-15 Menit';
+    const garansi = (formData.get('garansi') as string) || '30 Hari Refill';
     const urutan = parseInt((formData.get('urutan') as string) || '0', 10);
     const status_aktif = formData.get('status_aktif') === 'true';
+    const butuh_password = formData.get('butuh_password') === 'true';
 
-    if (isNaN(kode_paket)) {
-      return { success: false, message: 'Kode paket HARUS berupa angka murni!' };
+    // Validasi Wajib
+    if (isNaN(kode_paket) || kode_paket <= 0) {
+      return { success: false, message: 'Kode paket HARUS berupa angka murni lebih besar dari 0!' };
+    }
+    if (!nama_paket.trim() || !platform.trim()) {
+      return { success: false, message: 'Nama Paket dan Platform wajib diisi!' };
+    }
+    if (isNaN(harga) || harga <= 0) {
+      return { success: false, message: 'Harga Jual HARUS berupa angka positif!' };
+    }
+    if (isNaN(harga_modal) || harga_modal < 0) {
+      return { success: false, message: 'Harga Modal HARUS berupa angka tidak negatif!' };
     }
 
     // Cek duplikasi kode_paket
     const existing = await prisma.paket.findUnique({ where: { kode_paket } });
     if (existing) {
-      return { success: false, message: `Kode paket ${kode_paket} sudah digunakan!` };
+      return { success: false, message: `Kode paket ${kode_paket} sudah digunakan oleh paket "${existing.nama_paket}"!` };
     }
 
     await prisma.paket.create({
       data: {
         kode_paket,
         id_layanan_provider: id_layanan_provider && !isNaN(id_layanan_provider) ? id_layanan_provider : null,
+        nama_provider,
         platform,
         nama_paket,
         harga,
+        harga_modal,
+        jumlah_default,
         estimasi,
         garansi,
-        urutan,
+        butuh_password,
         status_aktif,
+        urutan,
       },
     });
 
     revalidatePath('/admin/paket');
     revalidatePath('/');
-    return { success: true, message: 'Paket baru berhasil ditambahkan!' };
+    return { success: true, message: 'Paket baru berhasil ditambahkan dan tampil di etalase!' };
   } catch (error: any) {
     return { success: false, message: error.message };
   }
 }
 
 /**
- * SERVER ACTION: Update Paket Existing
+ * SERVER ACTION: Update Paket Existing (Dukungan Ubah Kode Paket & Seluruh Field)
  */
 export async function updatePaketAction(paketId: number, formData: FormData) {
   try {
+    const kode_paket = parseInt(formData.get('kode_paket') as string, 10);
     const idLayananStr = formData.get('id_layanan_provider') as string;
     const id_layanan_provider = idLayananStr && idLayananStr.trim() !== '' ? parseInt(idLayananStr, 10) : null;
-    const platform = formData.get('platform') as string;
-    const nama_paket = formData.get('nama_paket') as string;
+    const nama_provider = (formData.get('nama_provider') as string) || 'Dumpedia.id';
+    const platform = (formData.get('platform') as string) || 'Instagram';
+    const nama_paket = (formData.get('nama_paket') as string) || '';
     const harga = parseInt(formData.get('harga') as string, 10);
-    const estimasi = formData.get('estimasi') as string;
-    const garansi = formData.get('garansi') as string;
+    const harga_modal = parseInt((formData.get('harga_modal') as string) || '0', 10);
+    const jumlah_default = parseInt((formData.get('jumlah_default') as string) || '1000', 10);
+    const estimasi = (formData.get('estimasi') as string) || '1-15 Menit';
+    const garansi = (formData.get('garansi') as string) || '30 Hari Refill';
     const urutan = parseInt((formData.get('urutan') as string) || '0', 10);
     const status_aktif = formData.get('status_aktif') === 'true';
+    const butuh_password = formData.get('butuh_password') === 'true';
+
+    // Validasi Wajib
+    if (isNaN(kode_paket) || kode_paket <= 0) {
+      return { success: false, message: 'Kode paket HARUS berupa angka murni!' };
+    }
+    if (!nama_paket.trim() || !platform.trim()) {
+      return { success: false, message: 'Nama Paket dan Platform tidak boleh kosong!' };
+    }
+    if (isNaN(harga) || harga <= 0) {
+      return { success: false, message: 'Harga Jual HARUS berupa angka positif!' };
+    }
+
+    // Cek duplikasi kode_paket dengan paket LAIN
+    const existing = await prisma.paket.findFirst({
+      where: {
+        kode_paket,
+        NOT: { id: paketId },
+      },
+    });
+
+    if (existing) {
+      return { success: false, message: `Kode paket ${kode_paket} sudah digunakan oleh paket "${existing.nama_paket}"!` };
+    }
 
     await prisma.paket.update({
       where: { id: paketId },
       data: {
+        kode_paket,
         id_layanan_provider: id_layanan_provider && !isNaN(id_layanan_provider) ? id_layanan_provider : null,
+        nama_provider,
         platform,
         nama_paket,
         harga,
+        harga_modal,
+        jumlah_default,
         estimasi,
         garansi,
-        urutan,
+        butuh_password,
         status_aktif,
+        urutan,
       },
     });
 
@@ -180,14 +231,47 @@ export async function updatePaketAction(paketId: number, formData: FormData) {
 }
 
 /**
- * SERVER ACTION: Hapus Paket
+ * SERVER ACTION: Quick Toggle Status Aktif / Non-Aktif
+ */
+export async function togglePaketStatusAction(paketId: number, status_aktif: boolean) {
+  try {
+    await prisma.paket.update({
+      where: { id: paketId },
+      data: { status_aktif },
+    });
+
+    revalidatePath('/admin/paket');
+    revalidatePath('/');
+    return {
+      success: true,
+      message: `Status paket berhasil diubah menjadi ${status_aktif ? 'AKTIF' : 'NON-AKTIF'}!`,
+    };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * SERVER ACTION: Hapus Paket (Dengan Order Safeguard)
  */
 export async function deletePaketAction(paketId: number) {
   try {
+    // Cek apakah ada riwayat order di paket ini
+    const orderCount = await prisma.order.count({
+      where: { paket_id: paketId },
+    });
+
+    if (orderCount > 0) {
+      return {
+        success: false,
+        message: `Tidak bisa dihapus karena sudah ada ${orderCount} riwayat order di dalamnya! Silakan nonaktifkan paket ini jika tidak ingin ditampilkan di etalase.`,
+      };
+    }
+
     await prisma.paket.delete({ where: { id: paketId } });
     revalidatePath('/admin/paket');
     revalidatePath('/');
-    return { success: true, message: 'Paket berhasil dihapus.' };
+    return { success: true, message: 'Paket berhasil dihapus permanen.' };
   } catch (error: any) {
     return { success: false, message: error.message };
   }
