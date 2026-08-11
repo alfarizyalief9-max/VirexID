@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { formatRupiah } from '@/lib/utils';
+import { createWebOrderAction } from '@/app/actions/order';
 import {
   Camera,
   Video,
@@ -13,6 +14,10 @@ import {
   ShieldCheck,
   Zap,
   Filter,
+  ShoppingCart,
+  ArrowRight,
+  RefreshCw,
+  ExternalLink,
 } from 'lucide-react';
 
 interface PaketItem {
@@ -39,6 +44,14 @@ interface PaketEtalaseClientProps {
 export default function PaketEtalaseClient({ paketList, nomorWaBot }: PaketEtalaseClientProps) {
   const [selectedPlatform, setSelectedPlatform] = useState<string>('Semua');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Web Checkout Modal State
+  const [orderModalPaket, setOrderModalPaket] = useState<PaketItem | null>(null);
+  const [nomorWaInput, setNomorWaInput] = useState('');
+  const [targetLinkInput, setTargetLinkInput] = useState('');
+  const [jumlahInput, setJumlahInput] = useState('1');
+  const [loadingOrder, setLoadingOrder] = useState(false);
+  const [successInvoice, setSuccessInvoice] = useState<{ invoice: string; total: number; nama: string } | null>(null);
 
   // Daftar Kategori Platform untuk Tab Filter
   const platforms = ['Semua', 'Instagram', 'TikTok', 'YouTube'];
@@ -155,27 +168,41 @@ export default function PaketEtalaseClient({ paketList, nomorWaBot }: PaketEtala
                   </span>
                 </div>
 
-                {/* 2 Tombol Utama: Salin Kode & Order via WA */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {/* Tombol 1: Salin Kode */}
+                {/* Tombol Utama: Pesan Langsung Web & Order via WA */}
+                <div className="space-y-2">
                   <button
-                    onClick={() => handleCopyCode(paket.kode_paket)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-700 hover:border-slate-600"
+                    onClick={() => {
+                      setOrderModalPaket(paket);
+                      setNomorWaInput('');
+                      setTargetLinkInput('');
+                      setJumlahInput('1');
+                      setSuccessInvoice(null);
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-purple-600/30"
                   >
-                    <Copy className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Salin Kode</span>
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <span>Pesan Langsung di Web</span>
                   </button>
 
-                  {/* Tombol 2: Order via WA */}
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>Order WA</span>
-                  </a>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleCopyCode(paket.kode_paket)}
+                      className="w-full py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold transition-all flex items-center justify-center gap-1 border border-slate-700"
+                    >
+                      <Copy className="w-3 h-3 text-purple-400" />
+                      <span>Salin Kode</span>
+                    </button>
+
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2 px-2.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-300 text-[11px] font-bold transition-all flex items-center justify-center gap-1 border border-emerald-800"
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                      <span>Order WA</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -186,6 +213,134 @@ export default function PaketEtalaseClient({ paketList, nomorWaBot }: PaketEtala
       {filteredPaket.length === 0 && (
         <div className="text-center py-16 glass-card rounded-3xl text-slate-400">
           <p className="text-base font-semibold">Belum ada paket untuk kategori {selectedPlatform}.</p>
+        </div>
+      )}
+
+      {/* MODAL CHECKOUT DIRECT ORDER WEB */}
+      {orderModalPaket && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-card rounded-3xl max-w-md w-full p-6 space-y-5 border border-purple-500/40 relative">
+            <button
+              onClick={() => setOrderModalPaket(null)}
+              className="absolute right-4 top-4 w-8 h-8 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs font-bold"
+            >
+              ✕
+            </button>
+
+            {successInvoice ? (
+              <div className="text-center space-y-4 py-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs text-slate-400 font-semibold block">PESANAN BERHASIL DIBUAT</span>
+                  <h3 className="text-2xl font-black font-mono text-amber-400">{successInvoice.invoice}</h3>
+                  <p className="text-xs text-slate-300">
+                    Paket: <strong>{successInvoice.nama}</strong>
+                  </p>
+                  <p className="text-lg font-bold text-emerald-400">{formatRupiah(successInvoice.total)}</p>
+                </div>
+
+                <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 space-y-1 text-left">
+                  <span className="font-bold text-purple-300 block">Langkah Selanjutnya:</span>
+                  <p>1. Lakukan pembayaran ke nomor rekening toko.</p>
+                  <p>2. Upload foto bukti bayar di halaman Cek Status.</p>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <a
+                    href={`/cek-status?inv=${successInvoice.invoice}`}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold flex items-center justify-center gap-2"
+                  >
+                    <span>Upload Bukti & Cek Status Invoice</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </a>
+                  <button
+                    onClick={() => setOrderModalPaket(null)}
+                    className="w-full py-2.5 rounded-xl bg-slate-900 text-slate-400 hover:text-white text-xs font-bold"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setLoadingOrder(true);
+                  const formData = new FormData();
+                  formData.append('kode_paket', String(orderModalPaket.kode_paket));
+                  formData.append('nomor_wa', nomorWaInput);
+                  formData.append('link_akun', targetLinkInput);
+                  formData.append('jumlah', jumlahInput);
+
+                  const res = await createWebOrderAction(formData);
+                  setLoadingOrder(false);
+
+                  if (res.success && res.no_invoice) {
+                    setSuccessInvoice({
+                      invoice: res.no_invoice,
+                      total: res.total_harga,
+                      nama: res.nama_paket,
+                    });
+                  } else {
+                    alert(res.message);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <span className="text-xs text-purple-400 font-bold tracking-wider uppercase block">Form Pemesanan Direct</span>
+                  <h3 className="text-lg font-bold text-slate-100">{orderModalPaket.nama_paket}</h3>
+                  <span className="text-xs text-emerald-400 font-bold">{formatRupiah(orderModalPaket.harga)}</span>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="space-y-1">
+                    <label className="text-slate-300 font-semibold block">Nomor WhatsApp Pemesan (628xxx / 08xxx):</label>
+                    <input
+                      type="text"
+                      value={nomorWaInput}
+                      onChange={(e) => setNomorWaInput(e.target.value)}
+                      placeholder="Contoh: 081234567890"
+                      required
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-100 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-300 font-semibold block">Target Link / Username Akun Sosmed:</label>
+                    <input
+                      type="text"
+                      value={targetLinkInput}
+                      onChange={(e) => setTargetLinkInput(e.target.value)}
+                      placeholder="Contoh: https://instagram.com/username_anda"
+                      required
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-100 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setOrderModalPaket(null)}
+                    className="px-4 py-2.5 text-xs rounded-xl bg-slate-900 text-slate-400 hover:text-white font-bold"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loadingOrder}
+                    className="px-5 py-2.5 text-xs rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center gap-2"
+                  >
+                    {loadingOrder ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
+                    <span>Buat Pesanan Sekarang</span>
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       )}
     </div>
