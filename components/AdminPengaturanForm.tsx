@@ -25,7 +25,7 @@ export default function AdminPengaturanForm({ pengaturanList }: AdminPengaturanF
     return item ? item.nilai : fallback;
   };
 
-  const [namaToko, setNamaToko] = useState(getValue('NAMA_TOKO', 'SUNTIK SOSMED ID'));
+  const [namaToko, setNamaToko] = useState(getValue('NAMA_TOKO', 'VirexID'));
   const [nomorAdminWA, setNomorAdminWA] = useState(getValue('NOMOR_ADMIN_WA', '6281234567890'));
   const [rekBCA, setRekBCA] = useState(getValue('REKENING_BCA', 'BCA: 1234567890 a/n Admin'));
   const [rekDana, setRekDana] = useState(getValue('REKENING_DANA', 'DANA: 081234567890 a/n Admin'));

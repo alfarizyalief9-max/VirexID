@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 // SEO Meta Data
 export const metadata = {
-  title: 'Etalase Suntik Sosmed ID - Layanan Followers, Likes & Views Fast Process',
+  title: 'Etalase VirexID - Layanan Followers, Likes & Views Fast Process',
   description: 'Pusat layanan suntik sosial media terpercaya. Followers Instagram, TikTok, YouTube murah, aman tanpa password, proses cepat 24 jam dengan garansi resmi.',
 };
 

@@ -138,7 +138,7 @@ async function connectToWhatsApp() {
     logger,
     printQRInTerminal: false,
     auth: state,
-    browser: ['SuntikSosmed-Gateway', 'Chrome', '1.0.0'],
+    browser: ['VirexID-Gateway', 'Chrome', '1.0.0'],
     syncFullHistory: false,
   });
 
@@ -315,7 +315,7 @@ async function connectToWhatsApp() {
 
         // B. PEMROSESAN PESAN TEKS
         const pesanLower = textMessage.trim().toLowerCase();
-        const namaToko = await getPengaturan('NAMA_TOKO', 'SUNTIK SOSMED ID');
+        const namaToko = await getPengaturan('NAMA_TOKO', 'VirexID');
 
         // B1. DETEKSI FORMAT ORDER KODE ANGKA (contoh: ORDER 101 - instagram.com/user ATAU 101 - link ATAU kode 101 link)
         const orderMatch =

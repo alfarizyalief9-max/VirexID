@@ -4,7 +4,7 @@ import AdminLayout from '@/components/AdminLayout';
 import AdminOrderTable from '@/components/AdminOrderTable';
 
 export const metadata = {
-  title: 'Kelola Order - Admin Suntik Sosmed ID',
+  title: 'Kelola Order - Admin VirexID',
 };
 
 /**

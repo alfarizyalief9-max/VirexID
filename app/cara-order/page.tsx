@@ -6,7 +6,7 @@ import { ShoppingBag, MessageSquare, CreditCard, CheckCircle2, ArrowRight } from
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Panduan Cara Order - Suntik Sosmed ID',
+  title: 'Panduan Cara Order - VirexID',
   description: 'Panduan mudah cara melakukan order paket suntik sosmed melalui WhatsApp Bot otomatis 24 jam.',
 };
 

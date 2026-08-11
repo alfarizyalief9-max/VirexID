@@ -168,7 +168,7 @@ async function main() {
   const pengaturanAwal = [
     {
       kunci: 'NAMA_TOKO',
-      nilai: 'SUNTIK SOSMED ID',
+      nilai: 'VirexID',
       keterangan: 'Nama Toko / Branding Utama',
     },
     {
@@ -178,12 +178,12 @@ async function main() {
     },
     {
       kunci: 'REKENING_BCA',
-      nilai: 'BCA: 1234567890 a/n Admin Suntik Sosmed',
+      nilai: 'BCA: 1234567890 a/n Admin VirexID',
       keterangan: 'Info Rekening Bank BCA',
     },
     {
       kunci: 'REKENING_DANA',
-      nilai: 'DANA/OVO/ShopeePay: 081234567890 a/n Admin Suntik Sosmed',
+      nilai: 'DANA/OVO/ShopeePay: 081234567890 a/n Admin VirexID',
       keterangan: 'Info E-Wallet DANA / OVO / ShopeePay',
     },
     {
@@ -195,7 +195,7 @@ async function main() {
     {
       kunci: 'GARANSI_INFO',
       nilai:
-        '🛡️ *GARANSI RESMI SUNTIK SOSMED ID*\n\n- Layanan Followers & Subscribers dilengkapi Garansi Refill 30 Hari.\n- Jika terjadi penurunan (drop), cukup hubungi admin dengan melampirkan No Invoice.\n- Proses refill maksimal 1x24 jam tanpa biaya tambahan.',
+        '🛡️ *GARANSI RESMI VirexID*\n\n- Layanan Followers & Subscribers dilengkapi Garansi Refill 30 Hari.\n- Jika terjadi penurunan (drop), cukup hubungi admin dengan melampirkan No Invoice.\n- Proses refill maksimal 1x24 jam tanpa biaya tambahan.',
       keterangan: 'Penjelasan Garansi untuk Balasan Bot Menu 4',
     },
   ];

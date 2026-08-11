@@ -7,7 +7,7 @@ interface FooterProps {
 /**
  * Komponen Footer Publik
  */
-export default function Footer({ namaToko = 'SUNTIK SOSMED ID' }: FooterProps) {
+export default function Footer({ namaToko = 'VirexID' }: FooterProps) {
   const year = new Date().getFullYear();
 
   return (

@@ -11,7 +11,7 @@ interface NavbarProps {
 /**
  * Komponen Navigation Bar Publik (Responsive & Glassmorphism)
  */
-export default function Navbar({ namaToko = 'SUNTIK SOSMED ID' }: NavbarProps) {
+export default function Navbar({ namaToko = 'VirexID' }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 glass-nav">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

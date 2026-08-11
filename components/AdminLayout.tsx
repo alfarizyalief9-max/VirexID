@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 ADMIN PANEL
               </span>
               <span className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider block">
-                Suntik Sosmed ID
+                VirexID
               </span>
             </div>
           </div>

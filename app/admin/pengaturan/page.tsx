@@ -4,7 +4,7 @@ import AdminLayout from '@/components/AdminLayout';
 import AdminPengaturanForm from '@/components/AdminPengaturanForm';
 
 export const metadata = {
-  title: 'Pengaturan Toko - Admin Suntik Sosmed ID',
+  title: 'Pengaturan Toko - Admin VirexID',
 };
 
 /**

@@ -6,7 +6,7 @@ import { ShoppingCart, DollarSign, Clock, Users, ArrowUpRight, ShieldCheck, Chec
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Dashboard Admin - Suntik Sosmed ID',
+  title: 'Dashboard Admin - VirexID',
 };
 
 /**

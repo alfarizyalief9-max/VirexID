@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ==============================================================================
-# SCRIPT OTOMATIS INSTALLASI & DEPLOYMENT SUNTIK SOSMED ID DI VPS UBUNTU/DEBIAN
+# SCRIPT OTOMATIS INSTALLASI & DEPLOYMENT VirexID DI VPS UBUNTU/DEBIAN
 # ==============================================================================
 
 echo "======================================================================"
-echo "🚀 MEMULAI SETUP DEPLOYMENT AUTOMATION SUNTIK SOSMED ID DI VPS..."
+echo "🚀 MEMULAI SETUP DEPLOYMENT AUTOMATION VirexID DI VPS..."
 echo "======================================================================"
 
 # 1. Update Paket Sistem VPS
@@ -26,7 +26,7 @@ echo "\n⚙️ 3. Install PM2 Process Manager Global..."
 sudo npm install -g pm2
 
 # 4. Clone / Pull Repository
-TARGET_DIR="/var/www/suntiksosmed"
+TARGET_DIR="/var/www/VirexID"
 echo "\n📁 4. Setting Direktori Project di $TARGET_DIR..."
 
 if [ ! -d "$TARGET_DIR" ]; then
@@ -49,7 +49,7 @@ npm install
 if [ ! -f ".env" ]; then
     echo "Membuat file .env dari template .env.production..."
     cp .env.production .env
-    echo "⚠️ Silakan edit file /var/www/suntiksosmed/.env untuk memasukkan DUMPEDIA_API_KEY & ADMIN_PASSWORD Anda!"
+    echo "⚠️ Silakan edit file /var/www/VirexID/.env untuk memasukkan DUMPEDIA_API_KEY & ADMIN_PASSWORD Anda!"
 fi
 
 # 7. Database Migration & Seed
