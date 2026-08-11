@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { revalidatePath } from 'next/cache';
 import { formatRupiah } from '@/lib/utils';
+import { createDumpediaOrder, checkDumpediaOrderStatus } from '@/services/smmDumpedia';
 
 /**
  * SERVER ACTION: Ubah Status Order + Otomatis Kirim Notifikasi WA ke Pelanggan
@@ -99,6 +100,8 @@ export async function deleteOrderAction(orderId: number) {
 export async function createPaketAction(formData: FormData) {
   try {
     const kode_paket = parseInt(formData.get('kode_paket') as string, 10);
+    const idLayananStr = formData.get('id_layanan_provider') as string;
+    const id_layanan_provider = idLayananStr && idLayananStr.trim() !== '' ? parseInt(idLayananStr, 10) : null;
     const platform = formData.get('platform') as string;
     const nama_paket = formData.get('nama_paket') as string;
     const harga = parseInt(formData.get('harga') as string, 10);
@@ -120,6 +123,7 @@ export async function createPaketAction(formData: FormData) {
     await prisma.paket.create({
       data: {
         kode_paket,
+        id_layanan_provider: id_layanan_provider && !isNaN(id_layanan_provider) ? id_layanan_provider : null,
         platform,
         nama_paket,
         harga,
@@ -143,6 +147,8 @@ export async function createPaketAction(formData: FormData) {
  */
 export async function updatePaketAction(paketId: number, formData: FormData) {
   try {
+    const idLayananStr = formData.get('id_layanan_provider') as string;
+    const id_layanan_provider = idLayananStr && idLayananStr.trim() !== '' ? parseInt(idLayananStr, 10) : null;
     const platform = formData.get('platform') as string;
     const nama_paket = formData.get('nama_paket') as string;
     const harga = parseInt(formData.get('harga') as string, 10);
@@ -154,6 +160,7 @@ export async function updatePaketAction(paketId: number, formData: FormData) {
     await prisma.paket.update({
       where: { id: paketId },
       data: {
+        id_layanan_provider: id_layanan_provider && !isNaN(id_layanan_provider) ? id_layanan_provider : null,
         platform,
         nama_paket,
         harga,
@@ -204,3 +211,132 @@ export async function updatePengaturanAction(kunci: string, nilai: string) {
     return { success: false, message: error.message };
   }
 }
+
+/**
+ * SERVER ACTION: Proses/Tembak Order ke Provider SMM Dumpedia.id
+ */
+export async function processDumpediaOrderAction(orderId: number) {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { paket: true },
+    });
+
+    if (!order) {
+      return { success: false, message: 'Order tidak ditemukan!' };
+    }
+
+    const serviceId = order.paket.id_layanan_provider || order.kode_paket;
+    if (!serviceId) {
+      return { success: false, message: 'Service ID / Kode Paket tidak valid untuk Dumpedia.' };
+    }
+
+    // Panggil Service API Dumpedia
+    const result = await createDumpediaOrder({
+      serviceId,
+      targetLink: order.link_akun,
+      quantity: order.jumlah || 1,
+    });
+
+    if (result.success && result.orderIdProvider) {
+      // Update Database Lokal
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          id_order_provider: String(result.orderIdProvider),
+          status_order: 'DIPROSES',
+        },
+      });
+
+      // Kirim Notifikasi WA ke Pelanggan
+      const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:3001';
+      const pesanWa =
+        `🚀 *PESANAN SEDANG DIPROSES PROVIDER!*\n\n` +
+        `No Invoice: *${order.no_invoice}*\n` +
+        `ID Provider: #${result.orderIdProvider}\n` +
+        `Paket: ${order.paket.nama_paket}\n` +
+        `Target: ${order.link_akun}\n` +
+        `Status: *DIPROSES*\n\n` +
+        `Pesanan Anda telah diteruskan ke server provider SMM dan sedang dikerjakan. Terima kasih! 🙏`;
+
+      try {
+        await axios.post(`${gatewayUrl}/kirim-pesan`, {
+          nomor: order.nomor_wa_pelanggan,
+          pesan: pesanWa,
+        });
+      } catch (errWa: any) {
+        console.warn('Peringatan: Gagal kirim WA Gateway:', errWa.message);
+      }
+
+      revalidatePath('/admin/order');
+      revalidatePath('/admin/dashboard');
+      return {
+        success: true,
+        message: `Berhasil dikirim ke Dumpedia! ID Order Provider: #${result.orderIdProvider}`,
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || 'Gagal mengirim order ke Dumpedia.',
+      };
+    }
+  } catch (error: any) {
+    console.error('Error processDumpediaOrderAction:', error.message);
+    return { success: false, message: 'Terjadi kesalahan internal saat menembak order ke Dumpedia.' };
+  }
+}
+
+/**
+ * SERVER ACTION: Cek Status Order Langsung dari Dumpedia.id
+ */
+export async function checkDumpediaOrderStatusAction(orderId: number) {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order || !order.id_order_provider) {
+      return { success: false, message: 'Order belum memiliki ID Ref Provider Dumpedia!' };
+    }
+
+    const result = await checkDumpediaOrderStatus(order.id_order_provider);
+
+    if (result.success) {
+      const statusDumpedia = result.data?.status || result.data?.status_order;
+      let newStatusLokal = order.status_order;
+
+      if (statusDumpedia) {
+        const sUpper = String(statusDumpedia).toUpperCase();
+        if (sUpper === 'SUCCESS' || sUpper === 'COMPLETED') {
+          newStatusLokal = 'SELESAI';
+        } else if (sUpper === 'ERROR' || sUpper === 'CANCELED' || sUpper === 'CANCELLED') {
+          newStatusLokal = 'GAGAL';
+        } else if (sUpper === 'PARTIAL') {
+          newStatusLokal = 'REFUND';
+        } else if (sUpper === 'PROCESSING' || sUpper === 'PENDING' || sUpper === 'IN PROGRESS') {
+          newStatusLokal = 'DIPROSES';
+        }
+
+        if (newStatusLokal !== order.status_order) {
+          await prisma.order.update({
+            where: { id: orderId },
+            data: { status_order: newStatusLokal },
+          });
+          revalidatePath('/admin/order');
+          revalidatePath('/admin/dashboard');
+        }
+      }
+
+      return {
+        success: true,
+        statusData: result.data,
+        message: `Status Dumpedia: ${statusDumpedia || 'OK'}`,
+      };
+    } else {
+      return { success: false, message: result.message || 'Gagal mengecek status ke Dumpedia.' };
+    }
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { updateOrderStatusAction, deleteOrderAction } from '@/app/actions/admin';
+import { updateOrderStatusAction, deleteOrderAction, processDumpediaOrderAction, checkDumpediaOrderStatusAction } from '@/app/actions/admin';
 import { formatRupiah } from '@/lib/utils';
-import { Search, Eye, Trash2, CheckCircle2, AlertCircle, RefreshCw, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { Search, Eye, Trash2, CheckCircle2, AlertCircle, RefreshCw, ExternalLink, Image as ImageIcon, Send, Zap } from 'lucide-react';
 
 interface OrderItem {
   id: number;
@@ -15,10 +15,12 @@ interface OrderItem {
   status_order: string;
   bukti_bayar_url: string | null;
   catatan_admin: string | null;
+  id_order_provider?: string | null;
   dibuatPada: Date | string;
   paket: {
     nama_paket: string;
     platform: string;
+    id_layanan_provider?: number | null;
   };
 }
 
@@ -68,6 +70,31 @@ export default function AdminOrderTable({ orders }: AdminOrderTableProps) {
       }
     } else {
       alert(res.message);
+    }
+  };
+
+  // Handler Tembak Order ke Dumpedia Provider
+  const handleProcessDumpedia = async (orderId: number) => {
+    if (!confirm('Apakah Anda yakin ingin menembak/mengirim pesanan ini ke provider SMM Dumpedia.id?')) return;
+    setLoading(true);
+    const res = await processDumpediaOrderAction(orderId);
+    setLoading(false);
+    if (res.success) {
+      showToast(res.message);
+    } else {
+      alert(`⚠️ Respon Dumpedia: ${res.message}`);
+    }
+  };
+
+  // Handler Cek Status Order ke Dumpedia
+  const handleCheckStatusDumpedia = async (orderId: number) => {
+    setLoading(true);
+    const res = await checkDumpediaOrderStatusAction(orderId);
+    setLoading(false);
+    if (res.success) {
+      showToast(res.message);
+    } else {
+      alert(`⚠️ Gagal Cek Status Dumpedia: ${res.message}`);
     }
   };
 
@@ -192,7 +219,33 @@ export default function AdminOrderTable({ orders }: AdminOrderTableProps) {
                     </select>
                   </td>
                   <td className="py-3.5 px-4">
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      {ord.id_order_provider ? (
+                        <div className="flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-700 text-cyan-300 font-mono text-[10px] font-bold">
+                            Ref #{ord.id_order_provider}
+                          </span>
+                          <button
+                            onClick={() => handleCheckStatusDumpedia(ord.id)}
+                            disabled={loading}
+                            className="p-1 rounded-lg bg-cyan-900/60 border border-cyan-700 text-cyan-300 hover:bg-cyan-800/80 text-[10px]"
+                            title="Cek Status Dumpedia"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleProcessDumpedia(ord.id)}
+                          disabled={loading}
+                          className="px-2 py-1 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-[10px] font-bold flex items-center gap-1 shadow-md shadow-cyan-600/20"
+                          title="Tembak Order ke Server Dumpedia.id"
+                        >
+                          <Zap className="w-3 h-3 text-amber-300" />
+                          <span>Tembak Provider</span>
+                        </button>
+                      )}
+
                       <button
                         onClick={() => {
                           setSelectedOrder(ord);
@@ -254,6 +307,40 @@ export default function AdminOrderTable({ orders }: AdminOrderTableProps) {
                   <span className="text-slate-400 block">Total Nominal:</span>
                   <span className="font-bold text-emerald-400">{formatRupiah(selectedOrder.total_harga)}</span>
                 </div>
+              </div>
+
+              {/* Status Integration Provider Dumpedia */}
+              <div className="bg-slate-950 p-3.5 rounded-xl border border-cyan-800/60 flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-slate-400 block font-semibold">Status Provider Dumpedia.id:</span>
+                  {selectedOrder.id_order_provider ? (
+                    <span className="font-mono font-extrabold text-cyan-300 text-sm">
+                      Terhubung (ID Ref #{selectedOrder.id_order_provider})
+                    </span>
+                  ) : (
+                    <span className="text-slate-500 font-medium italic">Belum Ditembak ke Provider</span>
+                  )}
+                </div>
+
+                {selectedOrder.id_order_provider ? (
+                  <button
+                    onClick={() => handleCheckStatusDumpedia(selectedOrder.id)}
+                    disabled={loading}
+                    className="px-3 py-1.5 rounded-xl bg-cyan-900/80 hover:bg-cyan-800 text-cyan-200 border border-cyan-700 font-bold text-xs flex items-center gap-1.5"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Cek Status</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleProcessDumpedia(selectedOrder.id)}
+                    disabled={loading}
+                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-600/30"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                    <span>Tembak Provider</span>
+                  </button>
+                )}
               </div>
 
               <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">

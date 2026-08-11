@@ -12,9 +12,10 @@ datasource db {
 
 // TABEL 1: Paket Suntik Sosmed (Etalase Produk)
 model Paket {
-  id            Int      @id @default(autoincrement()) // ID Unik Primary Key
-  kode_paket    Int      @unique                       // Kode angka unik wajib (contoh: 101, 201)
-  platform      String                                 // Platform: Instagram / TikTok / YouTube / dll
+  id                  Int      @id @default(autoincrement()) // ID Unik Primary Key
+  kode_paket          Int      @unique                       // Kode angka unik wajib (contoh: 101, 201)
+  id_layanan_provider Int?                                   // ID Service resmi dari Dumpedia.id (contoh: 1542)
+  platform            String                                 // Platform: Instagram / TikTok / YouTube / dll
   nama_paket    String                                 // Nama Paket (contoh: Followers 1K)
   harga         Int                                    // Harga dalam Rupiah (tanpa titik, contoh: 15000)
   estimasi      String                                 // Estimasi waktu pengerjaan (contoh: 1-15 menit)

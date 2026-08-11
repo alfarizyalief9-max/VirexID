@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2, CheckCircle2, ShieldCheck, Clock, RefreshCw } from 
 interface PaketItem {
   id: number;
   kode_paket: number;
+  id_layanan_provider?: number | null;
   platform: string;
   nama_paket: string;
   harga: number;
@@ -33,6 +34,7 @@ export default function AdminPaketTable({ paketList }: AdminPaketTableProps) {
 
   // Form State
   const [kodePaket, setKodePaket] = useState('');
+  const [idLayananProvider, setIdLayananProvider] = useState('');
   const [platform, setPlatform] = useState('Instagram');
   const [namaPaket, setNamaPaket] = useState('');
   const [harga, setHarga] = useState('');
@@ -49,6 +51,7 @@ export default function AdminPaketTable({ paketList }: AdminPaketTableProps) {
   const openAddModal = () => {
     setEditingPaket(null);
     setKodePaket('');
+    setIdLayananProvider('');
     setPlatform('Instagram');
     setNamaPaket('');
     setHarga('');
@@ -62,6 +65,7 @@ export default function AdminPaketTable({ paketList }: AdminPaketTableProps) {
   const openEditModal = (p: PaketItem) => {
     setEditingPaket(p);
     setKodePaket(p.kode_paket.toString());
+    setIdLayananProvider(p.id_layanan_provider ? p.id_layanan_provider.toString() : '');
     setPlatform(p.platform);
     setNamaPaket(p.nama_paket);
     setHarga(p.harga.toString());
@@ -78,6 +82,7 @@ export default function AdminPaketTable({ paketList }: AdminPaketTableProps) {
 
     const formData = new FormData();
     formData.append('kode_paket', kodePaket);
+    formData.append('id_layanan_provider', idLayananProvider);
     formData.append('platform', platform);
     formData.append('nama_paket', namaPaket);
     formData.append('harga', harga);
@@ -143,6 +148,7 @@ export default function AdminPaketTable({ paketList }: AdminPaketTableProps) {
               <tr className="bg-slate-900/80 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
                 <th className="py-3.5 px-4">Urutan</th>
                 <th className="py-3.5 px-4">Kode Angka</th>
+                <th className="py-3.5 px-4">Service ID Dumpedia</th>
                 <th className="py-3.5 px-4">Platform</th>
                 <th className="py-3.5 px-4">Nama Paket</th>
                 <th className="py-3.5 px-4">Harga</th>
@@ -156,6 +162,9 @@ export default function AdminPaketTable({ paketList }: AdminPaketTableProps) {
                 <tr key={p.id} className="hover:bg-slate-900/60 transition-colors">
                   <td className="py-3.5 px-4 text-slate-500 font-bold">#{p.urutan}</td>
                   <td className="py-3.5 px-4 font-mono font-black text-amber-400 text-sm">{p.kode_paket}</td>
+                  <td className="py-3.5 px-4 font-mono text-cyan-400 font-bold text-xs">
+                    {p.id_layanan_provider ? `#${p.id_layanan_provider}` : <span className="text-slate-600 font-normal italic">Auto (Kode)</span>}
+                  </td>
                   <td className="py-3.5 px-4 font-semibold text-slate-300">{p.platform}</td>
                   <td className="py-3.5 px-4 font-bold text-slate-100">{p.nama_paket}</td>
                   <td className="py-3.5 px-4 font-bold text-emerald-400">{formatRupiah(p.harga)}</td>
@@ -227,6 +236,17 @@ export default function AdminPaketTable({ paketList }: AdminPaketTableProps) {
                   disabled={!!editingPaket}
                   required
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100 font-mono focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-slate-300 font-semibold">ID Layanan Provider (Dumpedia):</label>
+                <input
+                  type="number"
+                  value={idLayananProvider}
+                  onChange={(e) => setIdLayananProvider(e.target.value)}
+                  placeholder="Contoh: 1542 (Opsional)"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-cyan-300 font-mono focus:outline-none focus:border-cyan-500"
                 />
               </div>
 

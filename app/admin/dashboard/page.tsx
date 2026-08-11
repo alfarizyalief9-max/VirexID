@@ -4,6 +4,11 @@ import AdminLayout from '@/components/AdminLayout';
 import { formatRupiah } from '@/lib/utils';
 import { ShoppingCart, DollarSign, Clock, Users, ArrowUpRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { Prisma } from '@prisma/client';
+
+type OrderWithPaket = Prisma.OrderGetPayload<{
+  include: { paket: true };
+}>;
 
 export const metadata = {
   title: 'Dashboard Admin - VirexID',
@@ -141,7 +146,7 @@ export default async function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {latestOrders.map((ord) => (
+                {latestOrders.map((ord: OrderWithPaket) => (
                   <tr key={ord.id} className="hover:bg-slate-900/60 transition-colors">
                     <td className="py-3 px-4 font-mono font-bold text-amber-400">{ord.no_invoice}</td>
                     <td className="py-3 px-4 text-slate-400">
