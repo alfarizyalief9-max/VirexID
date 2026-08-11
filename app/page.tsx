@@ -12,26 +12,36 @@ export const metadata = {
   description: 'Pusat layanan suntik sosial media terpercaya. Followers Instagram, TikTok, YouTube murah, aman tanpa password, proses cepat 24 jam dengan garansi resmi.',
 };
 
+export const dynamic = 'force-dynamic';
+
 /**
- * Halaman Utama Etalase Paket (Server Component Next.js 15)
+ * Halaman Utama Etalase Paket (Server Component)
  */
 export default async function HomePage() {
-  // Ambil data paket aktif dari database Prisma SQLite
-  const paketList = await prisma.paket.findMany({
-    where: { status_aktif: true },
-    orderBy: [{ urutan: 'asc' }, { kode_paket: 'asc' }],
-  });
+  let paketList: any[] = [];
+  let namaToko = 'SUNTIK SOSMED ID';
+  let nomorWaBot = '6281234567890';
 
-  // Ambil Pengaturan Toko dari Database SQLite
-  const namaTokoSetting = await prisma.pengaturan.findUnique({
-    where: { kunci: 'NAMA_TOKO' },
-  });
-  const nomorAdminSetting = await prisma.pengaturan.findUnique({
-    where: { kunci: 'NOMOR_ADMIN_WA' },
-  });
+  try {
+    // Ambil data paket aktif dari database Prisma SQLite
+    paketList = await prisma.paket.findMany({
+      where: { status_aktif: true },
+      orderBy: [{ urutan: 'asc' }, { kode_paket: 'asc' }],
+    });
 
-  const namaToko = namaTokoSetting ? namaTokoSetting.nilai : 'SUNTIK SOSMED ID';
-  const nomorWaBot = nomorAdminSetting ? nomorAdminSetting.nilai : '6281234567890';
+    // Ambil Pengaturan Toko dari Database SQLite
+    const namaTokoSetting = await prisma.pengaturan.findUnique({
+      where: { kunci: 'NAMA_TOKO' },
+    });
+    const nomorAdminSetting = await prisma.pengaturan.findUnique({
+      where: { kunci: 'NOMOR_ADMIN_WA' },
+    });
+
+    if (namaTokoSetting?.nilai) namaToko = namaTokoSetting.nilai;
+    if (nomorAdminSetting?.nilai) nomorWaBot = nomorAdminSetting.nilai;
+  } catch (err: any) {
+    console.error('Peringatan: Gagal load paket di homepage:', err.message);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-slate-950 to-slate-950 text-slate-100 flex flex-col justify-between">
